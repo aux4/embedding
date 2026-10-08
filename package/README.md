@@ -2,7 +2,8 @@
 
 Local, offline CPU embeddings using Google's EmbeddingGemma 2 model. Runs entirely on your machine — no API
 key, no network calls once the model is downloaded — and produces 768-dimensional vectors (with optional
-Matryoshka truncation to 512/256/128) that can be used for RAG, semantic search, or clustering.
+Matryoshka truncation to 512/256/128) that can be used for RAG, semantic search, or clustering. Published on
+[hub.aux4.io](https://hub.aux4.io/aux4/embedding).
 
 ## Installation
 
