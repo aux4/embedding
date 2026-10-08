@@ -1,0 +1,10 @@
+{
+  "name": "@aux4/embedding-runtime",
+  "version": "0.1.0",
+  "description": "Runtime dependencies for aux4/embedding (local CPU embeddings)",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.1"
+  }
+}

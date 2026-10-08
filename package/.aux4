@@ -1,0 +1,175 @@
+{
+  "scope": "aux4",
+  "name": "embedding",
+  "version": "0.1.0",
+  "description": "Local CPU embeddings with Google's EmbeddingGemma 2 (text and multimodal)",
+  "license": "Apache-2.0",
+  "git": "https://github.com/aux4/embedding",
+  "tags": [
+    "aux4",
+    "embeddings",
+    "ai",
+    "rag",
+    "embeddinggemma",
+    "onnx"
+  ],
+  "system": [
+    [
+      "test:node --version",
+      "brew:node"
+    ]
+  ],
+  "profiles": [
+    {
+      "name": "main",
+      "commands": [
+        {
+          "name": "embedding",
+          "execute": [
+            "profile:embedding"
+          ],
+          "help": {
+            "text": "Local CPU embeddings with Google's EmbeddingGemma 2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "embedding",
+      "commands": [
+        {
+          "name": "embed",
+          "execute": [
+            "stdin:node ${packageDir}/lib/embed.mjs embed values(modalities, task, title, dimension, dtype, cacheDir, device)"
+          ],
+          "help": {
+            "text": "Generate local CPU embeddings for a batch of items using EmbeddingGemma 2",
+            "variables": [
+              {
+                "name": "modalities",
+                "text": "Which modalities to load: text (text-only, smaller/faster) or full (text+image)",
+                "default": "text",
+                "options": [
+                  "text",
+                  "full"
+                ]
+              },
+              {
+                "name": "task",
+                "text": "Embedding task prefix: query or document (others are passed through as 'task: <name> | query: <text>')",
+                "default": "document"
+              },
+              {
+                "name": "title",
+                "text": "Document title used for the document task prefix when an item doesn't specify its own title",
+                "default": "none"
+              },
+              {
+                "name": "dimension",
+                "text": "Output embedding dimension (Matryoshka truncation + re-normalize)",
+                "default": "768",
+                "options": [
+                  "768",
+                  "512",
+                  "256",
+                  "128"
+                ]
+              },
+              {
+                "name": "dtype",
+                "text": "Model quantization: fp32, fp16, q8, q4, or q4f16",
+                "default": "q8"
+              },
+              {
+                "name": "cacheDir",
+                "text": "Directory where the model is cached/downloaded",
+                "default": "${aux4HomeDir}/cache/embedding"
+              },
+              {
+                "name": "device",
+                "text": "Inference device",
+                "default": "cpu"
+              }
+            ]
+          }
+        },
+        {
+          "name": "download",
+          "execute": [
+            "node ${packageDir}/lib/embed.mjs download values(modalities, dtype, cacheDir, device)"
+          ],
+          "help": {
+            "text": "Pre-fetch the EmbeddingGemma 2 model for the given modalities/dtype",
+            "variables": [
+              {
+                "name": "modalities",
+                "text": "Which modalities to download: text (text-only) or full (text+image)",
+                "default": "text",
+                "options": [
+                  "text",
+                  "full"
+                ]
+              },
+              {
+                "name": "dtype",
+                "text": "Model quantization: fp32, fp16, q8, q4, or q4f16",
+                "default": "q8"
+              },
+              {
+                "name": "cacheDir",
+                "text": "Directory where the model is cached/downloaded",
+                "default": "${aux4HomeDir}/cache/embedding"
+              },
+              {
+                "name": "device",
+                "text": "Inference device",
+                "default": "cpu"
+              }
+            ]
+          }
+        },
+        {
+          "name": "info",
+          "execute": [
+            "node ${packageDir}/lib/embed.mjs info values(modalities, dimension, dtype, cacheDir)"
+          ],
+          "help": {
+            "text": "Show model id, dtype, dimension, cache directory and whether the model is already downloaded",
+            "variables": [
+              {
+                "name": "modalities",
+                "text": "Which modalities to report on: text or full",
+                "default": "text",
+                "options": [
+                  "text",
+                  "full"
+                ]
+              },
+              {
+                "name": "dimension",
+                "text": "Output embedding dimension to report",
+                "default": "768",
+                "options": [
+                  "768",
+                  "512",
+                  "256",
+                  "128"
+                ]
+              },
+              {
+                "name": "dtype",
+                "text": "Model quantization to report",
+                "default": "q8"
+              },
+              {
+                "name": "cacheDir",
+                "text": "Directory where the model is cached/downloaded",
+                "default": "${aux4HomeDir}/cache/embedding"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

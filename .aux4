@@ -1,0 +1,22 @@
+{
+  "profiles": [
+    {
+      "name": "main",
+      "commands": [
+        {
+          "name": "build",
+          "execute": [
+            "cd package/lib && npm install",
+            "rm -rf package/lib/node_modules/onnxruntime-web",
+            "find package/lib/node_modules/onnxruntime-node/bin -name 'DirectML.dll' -delete",
+            "find package/lib/node_modules/onnxruntime-node/bin -name 'dxil.dll' -delete",
+            "find package/lib/node_modules/onnxruntime-node/bin -name 'dxcompiler.dll' -delete"
+          ],
+          "help": {
+            "text": "Install the aux4/embedding runtime dependencies (@huggingface/transformers, which pulls in the native onnxruntime-node/sharp binaries)"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+.DS_Store
+
+# build
+build
+local-test
+
+# Only ignore the installed runtime deps and the build lockfile in package/lib
+package/lib/node_modules/
+package/lib/package-lock.json
+
+*.zip
