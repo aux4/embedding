@@ -1,7 +1,7 @@
 {
   "scope": "aux4",
   "name": "embedding",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Local CPU embeddings with Google's EmbeddingGemma 2 (text and multimodal)",
   "license": "Apache-2.0",
   "git": "https://github.com/aux4/embedding",
