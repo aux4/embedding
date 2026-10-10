@@ -1,5 +1,18 @@
 # Release notes
 
+## 0.1.3
+
+### Tiny package, runtime deps installed on your machine (EMB-006)
+
+`package/lib/node_modules` is no longer shipped in the published package (it was ~263MB, making the zip
+~95MB). The runtime dependencies (`@huggingface/transformers`, including the native ONNX Runtime and, for
+`--modalities full`, `sharp`) are now installed on your machine on first use of `embed` or `download` —
+this gets you the correct native binaries for your own platform/architecture, so `--modalities full` (image
+embedding) now works everywhere, not just the platform the package happened to be built on. `npm install`
+is added to the `system` requirements check alongside `node`. Installation is concurrency-safe (guarded by
+a lock file) and all progress goes to stderr, never stdout. `onnxruntime-web` (the unused browser backend)
+is pruned after install. `package/lib/package-lock.json` is now committed for reproducible installs.
+
 ## 0.1.0
 
 ### Local CPU embeddings with EmbeddingGemma 2 (EMB-001, EMB-002)

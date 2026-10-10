@@ -4,8 +4,10 @@
 build
 local-test
 
-# Only ignore the installed runtime deps and the build lockfile in package/lib
+# Runtime deps are installed on the user's machine at first use (see
+# package/lib/embed.mjs ensureDeps) - never ship node_modules in the package.
+# package-lock.json IS committed for reproducibility - do not ignore it.
 package/lib/node_modules/
-package/lib/package-lock.json
+package/lib/.install.lock
 
 *.zip

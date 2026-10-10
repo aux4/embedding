@@ -52,6 +52,12 @@ jobs:
           path: /tmp/aux4-embedding-test-cache
           key: aux4-embedding-model-text-q8-${{ runner.os }}
 
+      - name: Cache runtime dependencies (installed lazily by embed.mjs on first use)
+        uses: actions/cache@v4
+        with:
+          path: package/lib/node_modules
+          key: aux4-embedding-runtime-deps-${{ runner.os }}-${{ hashFiles('package/lib/package-lock.json') }}
+
       - uses: aux4/action@v1
         with:
           command: test

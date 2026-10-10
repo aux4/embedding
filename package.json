@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "description": "Build tooling for aux4/embedding (the published package lives in package/)",
   "scripts": {
-    "build": "cd package/lib && npm install && rm -rf node_modules/onnxruntime-web && find node_modules/onnxruntime-node/bin -name 'DirectML.dll' -delete && find node_modules/onnxruntime-node/bin -name 'dxil.dll' -delete && find node_modules/onnxruntime-node/bin -name 'dxcompiler.dll' -delete",
+    "build": "echo 'no build step: aux4/embedding installs its runtime deps lazily on first use, see package/lib/embed.mjs ensureDeps'",
     "test": "aux4 test run"
   },
   "license": "Apache-2.0"

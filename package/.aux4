@@ -17,6 +17,10 @@
     [
       "test:node --version",
       "brew:node"
+    ],
+    [
+      "test:npm --version",
+      "brew:node"
     ]
   ],
   "profiles": [

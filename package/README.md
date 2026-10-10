@@ -11,8 +11,13 @@ Matryoshka truncation to 512/256/128) that can be used for RAG, semantic search,
 aux4 aux4 pkger install aux4/embedding
 ```
 
-The first `embed` or `download` call fetches the model (a few hundred MB depending on `--dtype` and
-`--modalities`) and caches it for later runs.
+Requires `node` and `npm` on your machine (checked at install time; `brew install node` if missing). The
+published package is tiny — it does **not** ship its runtime dependencies. The first `embed` or `download`
+call installs them (`@huggingface/transformers`, which pulls in the native ONNX Runtime and, for
+`--modalities full`, `sharp`) for your machine's platform/architecture, then downloads the model itself
+(~314 MB for the default `q8` dtype, more or less depending on `--dtype`/`--modalities`). Both need network
+access and happen once; everything after that runs fully offline from the local cache. Progress for both
+goes to stderr, so scripting against stdout is unaffected.
 
 ## Quick Start
 
@@ -139,11 +144,6 @@ shipped here.
 
 ## Limitations
 
-- **`--modalities full` (image embedding) only works on the platform the package was built/published for.**
-  `sharp`, the native image-decoding dependency, installs only the binary for the build host's
-  platform/architecture (an npm `optionalDependencies` limitation). The published build runs on a Linux CI
-  runner, so **image embedding currently only works on Linux x64**; `text`-only embedding has no such
-  restriction and works on every platform (it never loads `sharp`).
 - **Audio and video are not implemented.** Only `text` and `image` item fields are supported in this version.
 - **Items are embedded one at a time internally** (the model is loaded once per `embedding embed` invocation,
   but each item gets its own forward pass rather than a single padded batch). This keeps mixed
@@ -154,5 +154,10 @@ shipped here.
 
 ## Environment
 
-The model is downloaded from the Hugging Face Hub (`onnx-community/embeddinggemma-2-ONNX`) on first use. No
-API key is required — the model is Apache-2.0 licensed and ungated.
+Two things happen on first use, both requiring network access and `npm`:
+
+1. The runtime dependencies (`@huggingface/transformers` and its native ONNX Runtime/`sharp` binaries) are
+   installed for your machine's platform/architecture.
+2. The model is downloaded from the Hugging Face Hub (`onnx-community/embeddinggemma-2-ONNX`).
+
+No API key is required for either — the model is Apache-2.0 licensed and ungated.

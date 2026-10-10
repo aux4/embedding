@@ -5,6 +5,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@huggingface/transformers": "^4.3.1"
+    "@huggingface/transformers": "4.3.1"
   }
 }

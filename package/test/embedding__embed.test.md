@@ -1,15 +1,16 @@
 # embedding embed
 
 These tests download and run the real EmbeddingGemma 2 model (`onnx-community/embeddinggemma-2-ONNX`) on
-CPU. They require network access on first run (to populate the cache) and can take significantly longer
-than a typical aux4 test — the timeout below is generous to cover a cold cache.
+CPU. The package installs its runtime dependencies (`@huggingface/transformers`, pulled on first use - see
+the README) in addition to downloading the model, so the very first test in a clean environment pays for
+both an `npm install` and a cold model download. The timeout below is generous to cover that worst case.
 
 ## text-only embedding
 
 ### should return one 768-d vector per input item
 
 ```timeout
-180000
+300000
 ```
 
 ```execute

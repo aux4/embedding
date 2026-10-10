@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import { spawnSync } from "child_process";
 
 const MODEL_ID = "onnx-community/embeddinggemma-2-ONNX";
 const NATIVE_DIM = 768;
 const VALID_DIMENSIONS = [768, 512, 256, 128];
+const LIB_DIR = path.dirname(fileURLToPath(import.meta.url));
+const DEPS_MARKER = path.join(LIB_DIR, "node_modules", "@huggingface", "transformers", "package.json");
+const INSTALL_LOCK = path.join(LIB_DIR, ".install.lock");
+const INSTALL_WAIT_TIMEOUT_MS = 10 * 60 * 1000;
 
 function log(...args) {
   console.error(...args);
@@ -13,6 +19,93 @@ function log(...args) {
 function fail(message) {
   log(`Error: ${message}`);
   process.exit(1);
+}
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+// Deletes files matching any of `names` anywhere under `dir` (used to prune
+// unused native/GPU assets pulled in by @huggingface/transformers that this
+// package never loads).
+function removeFilesByName(dir, names) {
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      removeFilesByName(full, names);
+    } else if (names.includes(entry.name)) {
+      fs.rmSync(full, { force: true });
+    }
+  }
+}
+
+function pruneDeadWeight() {
+  // onnxruntime-web is the browser/WASM backend; this package only ever runs
+  // the Node backend (onnxruntime-node), so the web bundle is dead weight.
+  fs.rmSync(path.join(LIB_DIR, "node_modules", "onnxruntime-web"), { recursive: true, force: true });
+  // Windows DirectML/GPU assets are unused on CPU inference.
+  removeFilesByName(path.join(LIB_DIR, "node_modules", "onnxruntime-node", "bin"), [
+    "DirectML.dll",
+    "dxil.dll",
+    "dxcompiler.dll"
+  ]);
+}
+
+// Installs the runtime dependencies (@huggingface/transformers, which pulls in
+// the native onnxruntime-node + sharp binaries for THIS machine's
+// platform/architecture) on first use. Concurrency-safe across multiple aux4
+// processes via an exclusive lock file; all progress goes to stderr only, so
+// stdout stays clean JSON.
+function ensureDeps() {
+  if (fs.existsSync(DEPS_MARKER)) {
+    return;
+  }
+
+  const deadline = Date.now() + INSTALL_WAIT_TIMEOUT_MS;
+  for (;;) {
+    if (fs.existsSync(DEPS_MARKER)) {
+      return;
+    }
+
+    let lockFd;
+    try {
+      lockFd = fs.openSync(INSTALL_LOCK, "wx");
+    } catch (e) {
+      if (e.code !== "EEXIST") {
+        throw e;
+      }
+      if (Date.now() > deadline) {
+        fail("timed out waiting for another aux4/embedding process to finish installing runtime dependencies");
+      }
+      log("another aux4/embedding process is installing runtime dependencies, waiting...");
+      sleepSync(1000);
+      continue;
+    }
+
+    try {
+      log("installing aux4/embedding runtime dependencies (first use, needs npm + network)...");
+      const result = spawnSync("npm", ["install", "--omit=dev", "--no-audit", "--no-fund"], {
+        cwd: LIB_DIR,
+        stdio: ["ignore", 2, 2]
+      });
+      if (result.error) {
+        fail(`failed to run npm install: ${result.error.message}`);
+      }
+      if (result.status !== 0) {
+        fail(`npm install exited with code ${result.status}`);
+      }
+      if (!fs.existsSync(DEPS_MARKER)) {
+        fail("npm install finished but @huggingface/transformers is still missing");
+      }
+      pruneDeadWeight();
+      log("runtime dependencies installed.");
+    } finally {
+      fs.closeSync(lockFd);
+      fs.rmSync(INSTALL_LOCK, { force: true });
+    }
+    return;
+  }
 }
 
 async function readStdin() {
@@ -32,6 +125,7 @@ function resolveCacheDir(cacheDir) {
 }
 
 async function getTransformers(cacheDir) {
+  ensureDeps();
   const transformers = await import("@huggingface/transformers");
   transformers.env.cacheDir = resolveCacheDir(cacheDir) + path.sep;
   transformers.env.allowLocalModels = false;
